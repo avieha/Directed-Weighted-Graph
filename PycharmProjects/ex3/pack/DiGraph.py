@@ -16,7 +16,6 @@ class DiGraph:
 
     def all_in_edges_of_node(self, id1: int):
         x = self.nodes.get(id1)
-        x = Node(x)
         return x.ni_in
 
     def all_out_edges_of_node(self, id1: int):
@@ -74,6 +73,14 @@ class DiGraph:
         self.nodes.pop(node_id)
         self.mc += 1
         return True
+    def get_edge(self, id1: int, id2:int):
+        if self.nodes.get(id1) is None:
+            return None
+        list=self.all_out_edges_of_node(id1)
+        if list.get(id2) is None:
+            return None
+        else:
+            return list.get(id2)[1]
 
     def remove_edge(self, node_id1: int, node_id2: int):
         x = self.get_node(node_id1)
@@ -110,6 +117,7 @@ class Node:
     def __init__(self, key, pos):
         self.id = key
         self.tag = 0
+        self.w = -1
         self.info = ''
         self.pos = pos
         self.ni_in = {}
@@ -119,6 +127,12 @@ class Node:
         if self.ni_out.get(id1) is None:
             return False
         return True
+    def __lt__(self, other):
+        return self.w<other.w
+    def __gt__(self, other):
+        return self.w < other.w
+    def __eq__(self, other):
+        return self.w < other.w
 
     def __str__(self):
         print(self.id)
@@ -153,3 +167,4 @@ if __name__ == '__main__':
     print("v size is",graph.v_size())
     print("finnaly e size is", graph.e_size())
     print(graph.get_all_v())
+    print(graph.get_edge(2,2))

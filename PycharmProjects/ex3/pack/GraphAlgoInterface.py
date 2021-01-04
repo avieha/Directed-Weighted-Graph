@@ -6,6 +6,7 @@ import GraphInterface
 class GraphAlgoInterface:
     """This abstract class represents an interface of a graph."""
 
+
     def get_graph(self) -> GraphInterface:
         """
         :return: the directed graph on which the algorithm works on.
