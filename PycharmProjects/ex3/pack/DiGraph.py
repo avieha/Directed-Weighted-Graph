@@ -1,3 +1,6 @@
+from pack.GraphInterface import GraphInterface
+
+
 class DiGraph:
 
     def __init__(self):
@@ -6,19 +9,29 @@ class DiGraph:
         self.edgesize = 0
 
     def v_size(self):
+        if self is None:
+            return 0
         return len(self.nodes)
 
     def e_size(self):
+        if self is None:
+            return 0
         return self.edgesize
 
     def get_all_v(self):
+        if self is None:
+            return None
         return self.nodes
 
     def all_in_edges_of_node(self, id1: int):
+        if self is None or self.get_node(id1) is None:
+            return None
         x = self.nodes.get(id1)
         return x.ni_in
 
     def all_out_edges_of_node(self, id1: int):
+        if self is None or self.get_node(id1) is None:
+            return None
         x = self.nodes.get(id1)
         return x.ni_out
 
@@ -26,24 +39,30 @@ class DiGraph:
         return self.mc
 
     def add_edge(self, id1: int, id2: int, weight: float):
-        x = self.get_node(id1)
-        y = self.get_node(id2)
-        if y is None or x is None:
+        src = self.get_node(id1)
+        dest = self.get_node(id2)
+        if self is None or self.get_node(id1) is None or self.get_node(id2) is None:
+            return None
+        if dest is None or src is None:
            return False
-        if x.ni_out.get(id2) is None:
-            y.ni_in[id1] = [self.get_node(id1), weight]
-            x.ni_out[id2] = [self.get_node(id2), weight]
+        if id1 == id2:
+            return False
+        if src.ni_out.get(id2) is None:
+            dest.ni_in[id1] = self.get_node(id1)
+            src.ni_out[id2] = [self.get_node(id2), weight]
             self.mc += 1
-            self.edgesize+=1
+            self.edgesize += 1
         else:
-            curr_weight = x.ni_out.get(id2)[1]
+            curr_weight = src.ni_out.get(id2)[1]
             if curr_weight is not weight:
                 self.mc += 1
-            y.ni_in[id1] = [self.get_node(id1), weight]
-            x.ni_out[id2] = [self.get_node(id2), weight]
+            dest.ni_in[id1] = self.get_node(id1)
+            src.ni_out[id2] = [self.get_node(id2), weight]
         return True
 
     def get_node(self, id1):
+        if self is None:
+            return None
         if self.nodes.get(id1) is None:
             return None
         return self.nodes.get(id1)
@@ -63,53 +82,55 @@ class DiGraph:
             return False
         arr_in = x.ni_in
         arr_out = x.ni_out
-        for edge_in in arr_in.keys():
-            w = self.get_node(edge_in)
-            w.ni_out.pop(node_id)
-
-        self.edgesize -=len(arr_out)+len(arr_in)
-
-        self.mc += len(arr_out)
+        for edge_in in arr_in.values():
+            edge_in.ni_out.pop(node_id)
+            self.edgesize -= 1
+            self.mc += 1
+        for edge_out in arr_out.values():
+            t = edge_out[0]
+            t.ni_in.pop(node_id)
+            self.edgesize -= 1
+            self.mc += 1
         self.nodes.pop(node_id)
         self.mc += 1
         return True
-    def get_edge(self, id1: int, id2:int):
+
+    def get_edge(self, id1: int, id2: int):
         if self.nodes.get(id1) is None:
             return None
-        list=self.all_out_edges_of_node(id1)
+        list = self.all_out_edges_of_node(id1)
         if list.get(id2) is None:
             return None
         else:
             return list.get(id2)[1]
 
     def remove_edge(self, node_id1: int, node_id2: int):
-        x = self.get_node(node_id1)
-        if x is None:
+        src = self.get_node(node_id1)
+        if src is None:
             return False
-        if x.get_edge(node_id2) is False:
+        if src.get_edge(node_id2) is False:
             return False
-        x.ni_out.pop(node_id2)
+        src.ni_out.pop(node_id2)
         self.get_node(node_id2).ni_in.pop(node_id1)
-        self.mc -= 1
+        self.mc += 1
         self.edgesize -= 1
         return True
 
     def __str__(self):
         print("nodes:{")
         for node_in in self.nodes.keys():
-            print(node_in,end=" [")
+            print(node_in, end=" [")
             x = self.all_out_edges_of_node(node_in)
-            length=len(x)
-            counter=0
+            length = len(x)
+            counter = 0
             for y in x:
-                if counter==length-1:
-                  print(y,end="")
+                if counter is length-1:
+                  print(y, end="")
                 else:
                     print(y, end=" , ")
-                    counter+=1
+                    counter += 1
             print("]")
         print("}")
-
         return ''
 
 
@@ -127,44 +148,16 @@ class Node:
         if self.ni_out.get(id1) is None:
             return False
         return True
+
     def __lt__(self, other):
-        return self.w<other.w
+        return self.w < other.w
+
     def __gt__(self, other):
-        return self.w < other.w
+        return self.w > other.w
+
     def __eq__(self, other):
-        return self.w < other.w
+        return self.w == other.w
 
     def __str__(self):
         print(self.id)
         return ''
-
-if __name__ == '__main__':
-    graph = DiGraph()
-  # x=Node(5,None)
-   # print()
-    graph.add_node(1, None)
-    graph.add_node(2, None)
-    graph.add_node(3, None)
-    graph.add_node(4, None)
-    graph.add_edge(1, 2, 3.5)
-    graph.add_edge(2, 4, 5)
-    graph.add_edge(1, 3, 1)
-    print(graph)
-    print("before remove e size is: ", graph.edgesize)
-    graph.remove_node(2)
-    print(graph)
-    print("after remove e size is: ", graph.edgesize)
-    graph.add_node(2, None)
-    graph.add_edge(1,4,8)
-    graph.add_edge(2, 4, 8)
-    graph.add_edge(3, 4, 8)
-    graph.add_edge(3, 2, 8)
-    print("now remove e size is: ", graph.edgesize)
-    graph.remove_edge(1,3)
-    graph.add_node(2,None)
-    graph.add_edge(2,4,8)
-    print(graph)
-    print("v size is",graph.v_size())
-    print("finnaly e size is", graph.e_size())
-    print(graph.get_all_v())
-    print(graph.get_edge(2,2))
