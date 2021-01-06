@@ -1,8 +1,12 @@
 import json
 import queue
-from typing import List
 from DiGraph import DiGraph
-from pack.GraphAlgoInterface import GraphAlgoInterface
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.patches import ConnectionPatch
+import random
+
+
 
 
 class GraphAlgo:
@@ -146,7 +150,32 @@ class GraphAlgo:
         return list
 
     def plot_graph(self):
-        pass
+      x=[]
+      y=[]
+      n=[]
+      for node in self.g.get_all_v().values():
+          n.append(node.id)
+          if node.pos is None:
+              node.pos = (int(random.randrange(0, 100, 3)),int(random.randrange(0, 100, 8)),0)
+          x.append(node.pos[0])
+          y.append(node.pos[1])
+      fig, ax = plt.subplots()
+      ax.scatter(x, y,500,'red')
+      for ver in self.g.get_all_v().values():#type Node
+          for neighbour in self.g.all_out_edges_of_node(ver.id).values():
+                    from_xy=(ver.pos[0],ver.pos[1])
+                    to_xy=(neighbour[0].pos[0],neighbour[0].pos[1])
+                    plt.annotate('', from_xy, to_xy,arrowprops=dict(facecolor='blue', shrink=0.05),)
+      for i, txt in enumerate(n):
+          ax.annotate(txt, (x[i]-0.5, y[i]-0.5))
+      ax.text(0.5, 0.5, 'created by aviem and amiel', transform=ax.transAxes,
+              fontsize=30, color='gray', alpha=0.5,
+              ha='center', va='center', rotation='30')
+      plt.xlabel('X axis')
+      plt.ylabel('Y axis')
+      ax.set_title('Directed Weighted Graph')
+      plt.show()
+
     def __str__(self):
         print (self.g)
         return ""
@@ -172,7 +201,8 @@ if __name__ == '__main__':
     # print(graph.get_graph().get_node(2).ni_out)
     # graph.get_graph().remove_edge(1, 3)
     # print("first graph", graph.get_graph())
-    # print("sec graph", x)
-    print(graph.connected_component(0))
+    print(graph)
+    #print(graph.connected_component(0))
     # y = graph.shortest_path(1, 9)
+    graph.plot_graph()
     # print(y)
