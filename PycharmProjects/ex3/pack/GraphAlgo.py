@@ -165,7 +165,7 @@ class GraphAlgo:
           for neighbour in self.g.all_out_edges_of_node(ver.id).values():
                     from_xy=(ver.pos[0],ver.pos[1])
                     to_xy=(neighbour[0].pos[0],neighbour[0].pos[1])
-                    plt.annotate('', from_xy, to_xy,arrowprops=dict(facecolor='blue', shrink=0.05),)
+                    plt.annotate('', to_xy, from_xy ,arrowprops=dict(headwidth=8, width=0.5, shrink=0.07),)
       for i, txt in enumerate(n):
           ax.annotate(txt, (x[i]-0.5, y[i]-0.5))
       ax.text(0.5, 0.5, 'created by aviem and amiel', transform=ax.transAxes,
@@ -204,5 +204,6 @@ if __name__ == '__main__':
     print(graph)
     #print(graph.connected_component(0))
     # y = graph.shortest_path(1, 9)
+    graph.load_from_json("../data/A5")
     graph.plot_graph()
     # print(y)
