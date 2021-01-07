@@ -204,6 +204,10 @@ if __name__ == '__main__':
     print(graph)
     #print(graph.connected_component(0))
     # y = graph.shortest_path(1, 9)
-    graph.load_from_json("../data/A5")
-    graph.plot_graph()
+
+    graph.load_from_json("../data/G_1000_8000_0.json")
+   # print(graph)
+    graph.g.add_node(540000)
+    print( graph.connected_components())
+    #graph.plot_graph()
     # print(y)

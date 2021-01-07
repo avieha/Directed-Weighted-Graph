@@ -41,8 +41,8 @@ class DiGraph:
     def add_edge(self, id1: int, id2: int, weight: float):
         src = self.get_node(id1)
         dest = self.get_node(id2)
-        if self is None or self.get_node(id1) is None or self.get_node(id2) is None:
-            return None
+        if self is None or self.get_node(id1) is None or self.get_node(id2) is None or weight < 0:
+            return False
         if dest is None or src is None:
            return False
         if id1 == id2:
