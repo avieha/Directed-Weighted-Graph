@@ -1,32 +1,42 @@
 import json
 import queue
-from typing import List
 from DiGraph import DiGraph
-from pack.GraphAlgoInterface import GraphAlgoInterface
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.patches import ConnectionPatch
+import random
 
 
-class GraphAlgo(GraphAlgoInterface):
+class GraphAlgo:
 
-    def __init__(self):
-        self.g = DiGraph()
+    def __init__(self, d_graph=None):
+        if d_graph is None:
+            self.g = DiGraph()
+        else:
+            self.g = d_graph
 
     def get_graph(self):
         return self.g
 
     def load_from_json(self, file_name: str):
+        if self is None:
+            return False
         new_graph = DiGraph()
         with open(file_name, 'r') as fp:
             jsn = json.load(fp)
-        for item in jsn['nodes']:
+        for item in jsn['Nodes']:
             new_graph.add_node(item.get('id'))
-        for edge in jsn['edges']:
+        for edge in jsn['Edges']:
             src = edge['src']
             dest = edge['dest']
             w = edge['w']
             new_graph.add_edge(src, dest, w)
-        return new_graph
+        self.g = new_graph
+        return True
 
     def save_to_json(self, filename):
+        if self is None or self.g is None:
+            return False
         x = []
         y = []
         for key, value in self.g.get_all_v().items():
@@ -38,13 +48,13 @@ class GraphAlgo(GraphAlgoInterface):
             for sec_key, sec_val in self.g.all_out_edges_of_node(value.id).items():
                 y.append({"src": value.id, "dest": sec_val[0].id, "w": sec_val[1]})
         w = {}
-        w["nodes"] = x
-        w["edges"] = y
+        w["Nodes"] = x
+        w["Edges"] = y
         with open(filename, 'w') as json_file:
             json.dump(w, json_file)
 
     def shortest_path(self, id1: int, id2: int) -> (float, list):
-        if self is None:
+        if self is None or self.g is None:
             return (-1, [])
         if self.g.get_node(id1) is None or self.g.get_node(id2) is None:
             return (-1, [])
@@ -64,14 +74,14 @@ class GraphAlgo(GraphAlgoInterface):
             ni_list = self.g.all_out_edges_of_node(node.id)
             for key, ni_node in ni_list.items():
                 if self.g.get_node(ni_node[0].id).tag == 0:
-                    sum = node.w+self.g.get_edge(node.id, ni_node[0].id)
+                    sum = node.w + self.g.get_edge(node.id, ni_node[0].id)
                     if sum < self.g.get_node(ni_node[0].id).w or self.g.get_node(ni_node[0].id).w == -1:
-                        self.g.get_node(ni_node[0].id).w=sum
-                        dict_node[ni_node[0].id]=node.id
-                        q.put( ni_node[0])
+                        self.g.get_node(ni_node[0].id).w = sum
+                        dict_node[ni_node[0].id] = node.id
+                        q.put(ni_node[0])
         arr_list = []
         if self.g.get_node(id2).w == -1:
-            return (-1, ())
+            return (-1, [])
         else:
             prev_node = id2
             arr_list.append(prev_node)
@@ -87,6 +97,7 @@ class GraphAlgo(GraphAlgoInterface):
     def connected_component(self, id1: int):
         if self.g is None or self.g.get_node(id1) is None:
             return []
+        graph = GraphAlgo()
         self.DFS(self.g.get_node(id1))
         visited = []
         for node in self.g.get_all_v().values():
@@ -95,7 +106,7 @@ class GraphAlgo(GraphAlgoInterface):
         graph.g = self.reverse_graph(self.g)
         graph.DFS(graph.g.get_node(id1))
         list = []
-        for node in self.g.get_all_v().values():
+        for node in graph.g.get_all_v().values():
             if node.tag == 1 and node.id in visited:
                 list.append(node.id)
         return list
@@ -117,6 +128,7 @@ class GraphAlgo(GraphAlgoInterface):
         self.DFSUtil(v)
 
         # A function used by DFS
+
     def DFSUtil(self, v):
         # Mark the current node as visited
         # and print it
@@ -131,21 +143,45 @@ class GraphAlgo(GraphAlgoInterface):
         list = []
         for vertex in self.g.get_all_v().values():
             if self.connected_component(vertex.id) not in list:
-               list.append(self.connected_component(vertex.id))
+                list.append(self.connected_component(vertex.id))
         return list
 
     def plot_graph(self):
-        pass
+        x = []
+        y = []
+        n = []
+        for node in self.g.get_all_v().values():
+            n.append(node.id)
+            if node.pos is None:
+                node.pos = (int(random.randrange(0, 100, 3)), int(random.randrange(0, 100, 8)), 0)
+            x.append(node.pos[0])
+            y.append(node.pos[1])
+        fig, ax = plt.subplots()
+        ax.scatter(x, y, 500, 'red')
+        for ver in self.g.get_all_v().values():  # type Node
+            for neighbour in self.g.all_out_edges_of_node(ver.id).values():
+                from_xy = (ver.pos[0], ver.pos[1])
+                to_xy = (neighbour[0].pos[0], neighbour[0].pos[1])
+                plt.annotate('', from_xy, to_xy, arrowprops=dict(facecolor='blue', shrink=0.05), )
+        for i, txt in enumerate(n):
+            ax.annotate(txt, (x[i] - 0.5, y[i] - 0.5))
+        ax.text(0.5, 0.5, 'created by aviem and amiel', transform=ax.transAxes,
+                fontsize=30, color='gray', alpha=0.5,
+                ha='center', va='center', rotation='30')
+        plt.xlabel('X axis')
+        plt.ylabel('Y axis')
+        ax.set_title('Directed Weighted Graph')
+        plt.show()
+
+    def __str__(self):
+        print(self.g)
+        return ""
 
 
 if __name__ == '__main__':
     graph = GraphAlgo()
-    graph.get_graph().add_node(1, None)
-    graph.get_graph().add_node(2, None)
-    graph.get_graph().add_node(3, None)
-    graph.get_graph().add_node(4, None)
-    graph.get_graph().add_node(5, None)
-    graph.get_graph().add_node(6, None)
+    for n in range(0, 8):
+        graph.g.add_node(n)
     graph.get_graph().add_edge(1, 2, 3.5)
     graph.get_graph().add_edge(1, 3, 5)
     graph.get_graph().add_edge(1, 6, 6)
@@ -153,7 +189,8 @@ if __name__ == '__main__':
     graph.get_graph().add_edge(2, 5, 7)
     graph.get_graph().add_edge(3, 4, 1)
     graph.get_graph().add_edge(4, 1, 3)
-    graph.get_graph().add_edge(6, 1, 2.3)
+    graph.get_graph().add_edge(6, 7, 2.3)
+    graph.get_graph().add_edge(7, 6, 2.3)
     # graph.get_graph().add_edge(6, 2, 2.3)
     # graph.get_graph().remove_edge(1, 2)
     # graph.save_to_json("test_json")
@@ -162,7 +199,8 @@ if __name__ == '__main__':
     # print(graph.get_graph().get_node(2).ni_out)
     # graph.get_graph().remove_edge(1, 3)
     # print("first graph", graph.get_graph())
-    # print("sec graph", x)
-    print(graph.connected_components())
+    print(graph)
+    print(graph.connected_component(1))
     # y = graph.shortest_path(1, 9)
+    # graph.plot_graph()
     # print(y)

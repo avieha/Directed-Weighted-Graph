@@ -1,7 +1,5 @@
-from pack.GraphInterface import GraphInterface
 
-
-class DiGraph(GraphInterface):
+class DiGraph:
 
     def __init__(self):
         self.nodes = {}
@@ -9,19 +7,29 @@ class DiGraph(GraphInterface):
         self.edgesize = 0
 
     def v_size(self):
+        if self is None:
+            return 0
         return len(self.nodes)
 
     def e_size(self):
+        if self is None:
+            return 0
         return self.edgesize
 
     def get_all_v(self):
+        if self is None:
+            return None
         return self.nodes
 
     def all_in_edges_of_node(self, id1: int):
+        if self is None or self.get_node(id1) is None:
+            return None
         x = self.nodes.get(id1)
         return x.ni_in
 
     def all_out_edges_of_node(self, id1: int):
+        if self is None or self.get_node(id1) is None:
+            return None
         x = self.nodes.get(id1)
         return x.ni_out
 
@@ -31,6 +39,8 @@ class DiGraph(GraphInterface):
     def add_edge(self, id1: int, id2: int, weight: float):
         src = self.get_node(id1)
         dest = self.get_node(id2)
+        if self is None or self.get_node(id1) is None or self.get_node(id2) is None:
+            return None
         if dest is None or src is None:
            return False
         if id1 == id2:
@@ -49,6 +59,8 @@ class DiGraph(GraphInterface):
         return True
 
     def get_node(self, id1):
+        if self is None:
+            return None
         if self.nodes.get(id1) is None:
             return None
         return self.nodes.get(id1)

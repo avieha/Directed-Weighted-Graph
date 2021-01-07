@@ -53,13 +53,7 @@ class GraphAlgoInterface:
         raise NotImplementedError
 
     def connected_component(self, id1: int) -> list:
-        """
-        Finds the Strongly Connected Component(SCC) that node id1 is a part of.
-        @param id1: The node id
-        @return: The list of nodes in the SCC
-        Notes:
-        If the graph is None or id1 is not in the graph, the function should return an empty list []
-        """
+        
         raise NotImplementedError
 
     def connected_components(self) -> List[list]:
