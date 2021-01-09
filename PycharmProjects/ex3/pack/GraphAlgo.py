@@ -1,6 +1,6 @@
 import json
 import queue
-from DiGraph import DiGraph
+from pack.DiGraph import DiGraph
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import ConnectionPatch
@@ -24,16 +24,20 @@ class GraphAlgo:
         if self is None:
             return False
         new_graph = DiGraph()
-        with open(file_name, 'r') as fp:
-            jsn = json.load(fp)
-        for item in jsn['Nodes']:
-            new_graph.add_node(item.get('id'))
-        for edge in jsn['Edges']:
-            src = edge['src']
-            dest = edge['dest']
-            w = edge['w']
-            new_graph.add_edge(src, dest, w)
-        self.g = new_graph
+        try:
+          with open(file_name, 'r') as fp:
+               jsn = json.load(fp)
+          for item in jsn['Nodes']:
+             new_graph.add_node(item.get('id'))
+          for edge in jsn['Edges']:
+             src = edge['src']
+             dest = edge['dest']
+             w = edge['w']
+             new_graph.add_edge(src, dest, w)
+          self.g = new_graph
+        except:
+             print('cant open file')
+             return False
         return True
 
     def save_to_json(self, filename):
@@ -41,19 +45,24 @@ class GraphAlgo:
             return False
         x = []
         y = []
-        for key, value in self.g.get_all_v().items():
-            if value.pos is None:
-                x.append({"id": value.id})
-            else:
-                x.append({"id": value.id, "pos": value.pos})
-        for key, value in self.g.get_all_v().items():
-            for sec_key, sec_val in self.g.all_out_edges_of_node(value.id).items():
-                y.append({"src": value.id, "dest": sec_val[0].id, "w": sec_val[1]})
-        w = {}
-        w["Nodes"] = x
-        w["Edges"] = y
-        with open(filename, 'w') as json_file:
-            json.dump(w, json_file)
+        try:
+         for key, value in self.g.get_all_v().items():
+             if value.pos is None:
+                 x.append({"id": value.id})
+             else:
+                 x.append({"id": value.id, "pos": value.pos})
+         for key, value in self.g.get_all_v().items():
+             for sec_key, sec_val in self.g.all_out_edges_of_node(value.id).items():
+                 y.append({"src": value.id, "dest": sec_val[0].id, "w": sec_val[1]})
+         w = {}
+         w["Nodes"] = x
+         w["Edges"] = y
+         with open(filename, 'w') as json_file:
+             json.dump(w, json_file)
+        except:
+          print('Eror saving file')
+          return False
+        return True
 
     def shortest_path(self, id1: int, id2: int) -> (float, list):
         if self is None or  self.g is None:
@@ -201,13 +210,17 @@ if __name__ == '__main__':
     # print(graph.get_graph().get_node(2).ni_out)
     # graph.get_graph().remove_edge(1, 3)
     # print("first graph", graph.get_graph())
-    print(graph)
+   # print(graph)
     #print(graph.connected_component(0))
     # y = graph.shortest_path(1, 9)
-
-    graph.load_from_json("../data/G_1000_8000_0.json")
-   # print(graph)
-    graph.g.add_node(540000)
-    print( graph.connected_components())
+    graph.load_from_json('../tests/save_test')
+    g = GraphAlgo()
+    g.load_from_json('../tests/save_test')
+    print(g.get_graph()==graph.get_graph())
+    #for node1, node2 in zip(g.g.get_all_v().values(), graph.g.get_all_v().values()):
+       # print("node 1 is :",node1.id)
+        #print("node 2 is :", node2.id)
+    print(graph,g)
+    #print( graph.connected_components())
     #graph.plot_graph()
     # print(y)

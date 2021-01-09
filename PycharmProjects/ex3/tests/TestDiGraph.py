@@ -202,4 +202,3 @@ class TestDiGraph(TestCase):
         for key in g.all_out_edges_of_node(0).values():
             sec_list.append(key[0].id)
         self.assertListEqual(sec_list, list)
-

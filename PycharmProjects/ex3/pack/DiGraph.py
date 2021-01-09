@@ -133,7 +133,24 @@ class DiGraph:
         print("}")
         return ''
 
+    def __eq__(self, other):
+        if(len(self.get_all_v().values())!=len(other.get_all_v().values())):
+            return False
+        for node1 ,node2 in zip(self.get_all_v().values(), other.get_all_v().values()):
+            if node1!=node2:
+                return False
+            if (len(self.all_out_edges_of_node(node1.id)) != len(other.all_out_edges_of_node(node2.id))):
+                return False
+            for in1, in2 in zip(self.all_out_edges_of_node(node1.id),other.all_out_edges_of_node(node2.id)):
+                if in1!=in2:
+                    return False
+            if (len(self.all_in_edges_of_node(node1.id)) != len(other.all_in_edges_of_node(node2.id))):
+                return False
+            for out1, out2 in zip(self.all_in_edges_of_node(node1.id),other.all_in_edges_of_node(node2.id)):
+                if out1!=out2:
+                    return False
 
+        return True
 class Node:
     def __init__(self, key, pos):
         self.id = key
@@ -161,3 +178,6 @@ class Node:
     def __str__(self):
         print(self.id)
         return ''
+
+    def __eq__(self, other):
+        return self.id == other.id
