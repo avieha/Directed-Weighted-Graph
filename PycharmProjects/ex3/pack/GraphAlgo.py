@@ -66,9 +66,9 @@ class GraphAlgo:
 
     def shortest_path(self, id1: int, id2: int) -> (float, list):
         if self is None or  self.g is None:
-            return (-1, [])
+            return (float('inf'), [])
         if self.g.get_node(id1) is None or self.g.get_node(id2) is None:
-            return (-1, [])
+            return (float('inf'), [])
         if id1 == id2:
             return (0, [id1])
         for key, node in self.g.get_all_v().items():
@@ -92,7 +92,7 @@ class GraphAlgo:
                         q.put( ni_node[0])
         arr_list = []
         if self.g.get_node(id2).w == -1:
-            return (-1, [])
+            return (float('inf'), [])
         else:
             prev_node = id2
             arr_list.append(prev_node)
@@ -136,26 +136,29 @@ class GraphAlgo:
     # The function to do DFS traversal. It uses
     # recursive DFSUtil()
     def DFS(self, v):
-        for key, node in self.g.get_all_v().items():
+        for node in self.g.get_all_v().values():
             node.tag = 0
-        self.DFSUtil(v)
-
-        # A function used by DFS
-    def DFSUtil(self, v):
-        # Mark the current node as visited
-        # and print it
+        q = queue.LifoQueue(maxsize=0)
         v.tag = 1
-        # Recur for all the vertices
-        # adjacent to this vertex
-        for key, neighbour in self.g.all_out_edges_of_node(v.id).items():
-            if neighbour[0].tag == 0:
-                self.DFSUtil(neighbour[0])
+        q.put_nowait(v)
+        while not q.empty():
+            v = q.get()
+            for neighbour in self.g.all_out_edges_of_node(v.id).values():
+                if neighbour[0].tag == 0:
+                    neighbour[0].tag = 1
+                    q.put(neighbour[0])
 
     def connected_components(self):
         list = []
+        for ver in self.g.get_all_v().values():
+            ver.w=-1
         for vertex in self.g.get_all_v().values():
-            if self.connected_component(vertex.id) not in list:
-               list.append(self.connected_component(vertex.id))
+            if vertex.w==1:
+                continue;
+            list2 = self.connected_component(vertex.id)
+            for i in list2:
+                self.g.get_node(i).w=1
+            list.append(list2)
         return list
 
     def plot_graph(self):
@@ -191,17 +194,22 @@ class GraphAlgo:
 
 if __name__ == '__main__':
     graph = GraphAlgo()
-    for n in range(0,8):
+    for n in range(5):
         graph.g.add_node(n)
+    graph.get_graph().add_edge(0, 2, 3.5)
     graph.get_graph().add_edge(1, 2, 3.5)
     graph.get_graph().add_edge(1, 3, 5)
     graph.get_graph().add_edge(1, 6, 6)
+    graph.get_graph().add_edge(2, 0, 4)
     graph.get_graph().add_edge(2, 4, 4)
     graph.get_graph().add_edge(2, 5, 7)
     graph.get_graph().add_edge(3, 4, 1)
     graph.get_graph().add_edge(4, 1, 3)
     graph.get_graph().add_edge(6, 7, 2.3)
     graph.get_graph().add_edge(7, 6, 2.3)
+    graph.get_graph().add_edge(6, 2, 2.3)
+    graph.load_from_json('../data/G_30000_240000_0.json')
+    print(graph.connected_components())
     # graph.get_graph().add_edge(6, 2, 2.3)
     # graph.get_graph().remove_edge(1, 2)
     # graph.save_to_json("test_json")
@@ -213,14 +221,15 @@ if __name__ == '__main__':
    # print(graph)
     #print(graph.connected_component(0))
     # y = graph.shortest_path(1, 9)
-    graph.load_from_json('../tests/save_test')
-    g = GraphAlgo()
-    g.load_from_json('../tests/save_test')
-    print(g.get_graph()==graph.get_graph())
+   # graph.load_from_json('../tests/save_test')
+    #g = GraphAlgo()
+    #g.load_from_json('../tests/save_test')
+
     #for node1, node2 in zip(g.g.get_all_v().values(), graph.g.get_all_v().values()):
        # print("node 1 is :",node1.id)
         #print("node 2 is :", node2.id)
-    print(graph,g)
+
+   # print(graph)
     #print( graph.connected_components())
     #graph.plot_graph()
     # print(y)
