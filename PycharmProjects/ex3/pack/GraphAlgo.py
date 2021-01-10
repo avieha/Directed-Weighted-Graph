@@ -56,10 +56,12 @@ class GraphAlgo:
         y = []
         try:
          for key, value in self.g.get_all_v().items():
-             if value.pos is None:
+             if value.pos is None :
                  x.append({"id": value.id})
              else:
-                 x.append({"id": value.id, "pos": value.pos})
+                 s,t,u = value.pos
+                 str_pos=str(s)+", "+str(t)+", "+"0.0"
+                 x.append({"id": value.id, "pos": str_pos})
          for key, value in self.g.get_all_v().items():
              for sec_key, sec_val in self.g.all_out_edges_of_node(value.id).items():
                  y.append({"src": value.id, "dest": sec_val[0].id, "w": sec_val[1]})
@@ -214,9 +216,10 @@ if __name__ == '__main__':
     graph.get_graph().add_edge(7, 6, 2.3)
     graph.get_graph().add_edge(6, 2, 2.3)
     graph.load_from_json('../data/G_1000_8000_1.json')
-    start = time.time()
-    #print(graph.connected_components())
-    end= time.time()
-    #print("time is ",end-start)
-    graph.plot_graph()
+    # start = time.time()
+    # #print(graph.connected_components())
+    # end= time.time()
+    # #print("time is ",end-start)
+
+
 
