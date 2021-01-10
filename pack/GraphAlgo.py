@@ -1,9 +1,9 @@
 import json
 import queue
+import networkx as nx
+from networkx.readwrite import json_graph
 from DiGraph import DiGraph
-import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.patches import ConnectionPatch
 import random
 
 
@@ -104,7 +104,7 @@ class GraphAlgo:
             if node.tag == 1:
                 visited.append(node.id)
         graph.g = self.reverse_graph(self.g)
-        graph.DFS(graph.g.get_node(id1))
+        graph.DFS(self.g.get_node(id1))
         list = []
         for node in graph.g.get_all_v().values():
             if node.tag == 1 and node.id in visited:
@@ -120,30 +120,25 @@ class GraphAlgo:
                 graph2.add_edge(edge[0].id, ver.id, 0)
         return graph2
 
-    # The function to do DFS traversal. It uses
-    # recursive DFSUtil()
+    # The function to do DFS traversal.
     def DFS(self, v):
-        for key, node in self.g.get_all_v().items():
+        for node in self.g.get_all_v().values():
             node.tag = 0
-        self.DFSUtil(v)
-
-        # A function used by DFS
-
-    def DFSUtil(self, v):
-        # Mark the current node as visited
-        # and print it
+        q = queue.LifoQueue(maxsize=0)
         v.tag = 1
-        # Recur for all the vertices
-        # adjacent to this vertex
-        for key, neighbour in self.g.all_out_edges_of_node(v.id).items():
-            if neighbour[0].tag == 0:
-                self.DFSUtil(neighbour[0])
+        q.put_nowait(v)
+        while not q.empty():
+            v = q.get()
+            for neighbour in self.g.all_out_edges_of_node(v.id).values():
+                if neighbour[0].tag == 0:
+                    neighbour[0].tag = 1
+                    q.put(neighbour[0])
 
     def connected_components(self):
         list = []
         for vertex in self.g.get_all_v().values():
-            if self.connected_component(vertex.id) not in list:
-                list.append(self.connected_component(vertex.id))
+            if self.connected_component(vertex) not in list:
+                list.append(self.connected_component(vertex))
         return list
 
     def plot_graph(self):
@@ -157,12 +152,12 @@ class GraphAlgo:
             x.append(node.pos[0])
             y.append(node.pos[1])
         fig, ax = plt.subplots()
-        ax.scatter(x, y, 500, 'red')
+        ax.scatter(x, y, 200, 'red')
         for ver in self.g.get_all_v().values():  # type Node
             for neighbour in self.g.all_out_edges_of_node(ver.id).values():
                 from_xy = (ver.pos[0], ver.pos[1])
                 to_xy = (neighbour[0].pos[0], neighbour[0].pos[1])
-                plt.annotate('', from_xy, to_xy, arrowprops=dict(facecolor='blue', shrink=0.05), )
+                plt.annotate('', to_xy, from_xy, arrowprops=dict(headwidth=7, width=0.5, shrink=0.08), )
         for i, txt in enumerate(n):
             ax.annotate(txt, (x[i] - 0.5, y[i] - 0.5))
         ax.text(0.5, 0.5, 'created by aviem and amiel', transform=ax.transAxes,
@@ -180,18 +175,20 @@ class GraphAlgo:
 
 if __name__ == '__main__':
     graph = GraphAlgo()
-    for n in range(0, 8):
+    for n in range(5):
         graph.g.add_node(n)
+    graph.get_graph().add_edge(0, 2, 3.5)
     graph.get_graph().add_edge(1, 2, 3.5)
     graph.get_graph().add_edge(1, 3, 5)
     graph.get_graph().add_edge(1, 6, 6)
+    graph.get_graph().add_edge(2, 0, 4)
     graph.get_graph().add_edge(2, 4, 4)
     graph.get_graph().add_edge(2, 5, 7)
     graph.get_graph().add_edge(3, 4, 1)
     graph.get_graph().add_edge(4, 1, 3)
     graph.get_graph().add_edge(6, 7, 2.3)
     graph.get_graph().add_edge(7, 6, 2.3)
-    # graph.get_graph().add_edge(6, 2, 2.3)
+    graph.get_graph().add_edge(6, 2, 2.3)
     # graph.get_graph().remove_edge(1, 2)
     # graph.save_to_json("test_json")
     # x = graph.load_from_json("test_json")
@@ -199,8 +196,12 @@ if __name__ == '__main__':
     # print(graph.get_graph().get_node(2).ni_out)
     # graph.get_graph().remove_edge(1, 3)
     # print("first graph", graph.get_graph())
-    print(graph)
-    print(graph.connected_component(1))
+    # print(graph)
     # y = graph.shortest_path(1, 9)
+    # g1 = nx.DiGraph
+    # graph.read_json_file("../graphs/G_20000_160000_0.json", g1)
+    # graph.load_from_json("../graphs/G_10_80_0.json")
+    print(graph)
+    print(graph.connected_component(0))
     # graph.plot_graph()
     # print(y)
