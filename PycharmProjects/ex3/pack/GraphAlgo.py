@@ -1,5 +1,7 @@
 import json
 import queue
+import time
+
 from pack.DiGraph import DiGraph
 import numpy as np
 import matplotlib.pyplot as plt
@@ -29,6 +31,13 @@ class GraphAlgo:
                jsn = json.load(fp)
           for item in jsn['Nodes']:
              new_graph.add_node(item.get('id'))
+             if item.get('pos') is not None:
+                pos = item.get('pos')
+                x, y,z = pos.split(',')
+                x=float(x)
+                y = float(y)
+                z= float(z)
+                new_graph.get_node(item.get('id')).pos=(x,y,z)
           for edge in jsn['Edges']:
              src = edge['src']
              dest = edge['dest']
@@ -112,15 +121,11 @@ class GraphAlgo:
             return []
         graph = GraphAlgo()
         self.DFS(self.g.get_node(id1))
-        visited = []
-        for node in self.g.get_all_v().values():
-            if node.tag == 1:
-                visited.append(node.id)
         graph.g = self.reverse_graph(self.g)
         graph.DFS(graph.g.get_node(id1))
         list = []
         for node in graph.g.get_all_v().values():
-            if node.tag == 1 and node.id in visited:
+            if node.tag == 1 and self.g.get_node(node.id).tag == 1:
                 list.append(node.id)
         return list
 
@@ -179,7 +184,7 @@ class GraphAlgo:
                     to_xy=(neighbour[0].pos[0],neighbour[0].pos[1])
                     plt.annotate('', to_xy, from_xy ,arrowprops=dict(headwidth=8, width=0.5, shrink=0.07),)
       for i, txt in enumerate(n):
-          ax.annotate(txt, (x[i]-0.5, y[i]-0.5))
+          ax.annotate(txt, (x[i]-0.02, y[i]-0.02))
       ax.text(0.5, 0.5, 'created by aviem and amiel', transform=ax.transAxes,
               fontsize=30, color='gray', alpha=0.5,
               ha='center', va='center', rotation='30')
@@ -208,28 +213,10 @@ if __name__ == '__main__':
     graph.get_graph().add_edge(6, 7, 2.3)
     graph.get_graph().add_edge(7, 6, 2.3)
     graph.get_graph().add_edge(6, 2, 2.3)
-    graph.load_from_json('../data/G_30000_240000_0.json')
-    print(graph.connected_components())
-    # graph.get_graph().add_edge(6, 2, 2.3)
-    # graph.get_graph().remove_edge(1, 2)
-    # graph.save_to_json("test_json")
-    # x = graph.load_from_json("test_json")
-    # print(graph.get_graph())
-    # print(graph.get_graph().get_node(2).ni_out)
-    # graph.get_graph().remove_edge(1, 3)
-    # print("first graph", graph.get_graph())
-   # print(graph)
-    #print(graph.connected_component(0))
-    # y = graph.shortest_path(1, 9)
-   # graph.load_from_json('../tests/save_test')
-    #g = GraphAlgo()
-    #g.load_from_json('../tests/save_test')
+    graph.load_from_json('../data/G_1000_8000_1.json')
+    start = time.time()
+    #print(graph.connected_components())
+    end= time.time()
+    #print("time is ",end-start)
+    graph.plot_graph()
 
-    #for node1, node2 in zip(g.g.get_all_v().values(), graph.g.get_all_v().values()):
-       # print("node 1 is :",node1.id)
-        #print("node 2 is :", node2.id)
-
-   # print(graph)
-    #print( graph.connected_components())
-    #graph.plot_graph()
-    # print(y)
