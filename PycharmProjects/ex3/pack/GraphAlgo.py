@@ -169,29 +169,49 @@ class GraphAlgo:
         return list
 
     def plot_graph(self):
-      x=[]
-      y=[]
-      n=[]
+      x = []
+      y = []
+      n = []
+      max_x = -1000
+      min_x = 1000
+      max_y = -1000
+      min_y = 1000
+
       for node in self.g.get_all_v().values():
           n.append(node.id)
           if node.pos is None:
               node.pos = (int(random.randrange(0, 100, 3)),int(random.randrange(0, 100, 8)),0)
           x.append(node.pos[0])
           y.append(node.pos[1])
-      fig, ax = plt.subplots()
-      ax.scatter(x, y,500,'red')
+          if node.pos[0] >max_x:
+              max_x = node.pos[0]
+          if node.pos[1] >max_y:
+              max_y = node.pos[1]
+          if node.pos[0] < min_x:
+              min_x = node.pos[0]
+          if node.pos[1] < min_y:
+              min_y = node.pos[1]
+      fig, ax = plt.subplots(facecolor=(0.5,0.8,0.8))
+      ax.scatter(x, y,100,'red')
       for ver in self.g.get_all_v().values():#type Node
           for neighbour in self.g.all_out_edges_of_node(ver.id).values():
                     from_xy=(ver.pos[0],ver.pos[1])
                     to_xy=(neighbour[0].pos[0],neighbour[0].pos[1])
-                    plt.annotate('', to_xy, from_xy ,arrowprops=dict(headwidth=8, width=0.5, shrink=0.07),)
+                    con = ConnectionPatch(from_xy, to_xy, "data", "data",
+                                          arrowstyle="-|>", shrinkA=5, shrinkB=5,
+                                          mutation_scale=18, fc="orange")
+                    ax.add_artist(con)
+                    #plt.annotate('', to_xy, from_xy ,arrowprops=dict(headwidth=5, width=0.5, shrink=0.07),)
       for i, txt in enumerate(n):
-          ax.annotate(txt, (x[i]-0.02, y[i]-0.02))
+          ax.annotate(txt, (x[i], y[i]+0.0002))
       ax.text(0.5, 0.5, 'created by aviem and amiel', transform=ax.transAxes,
               fontsize=30, color='gray', alpha=0.5,
               ha='center', va='center', rotation='30')
+      plt.axis([min_x-0.001,max_x+0.001,min_y-0.001,max_y+0.001])
+      #plt.axis([0, 100, 0, 100])
       plt.xlabel('X axis')
       plt.ylabel('Y axis')
+      ax.set_facecolor('#eafff5')
       ax.set_title('Directed Weighted Graph')
       plt.show()
 
@@ -215,7 +235,8 @@ if __name__ == '__main__':
     graph.get_graph().add_edge(6, 7, 2.3)
     graph.get_graph().add_edge(7, 6, 2.3)
     graph.get_graph().add_edge(6, 2, 2.3)
-    graph.load_from_json('../data/G_1000_8000_1.json')
+    graph.load_from_json('../data/A3')
+    graph.plot_graph()
     # start = time.time()
     # #print(graph.connected_components())
     # end= time.time()

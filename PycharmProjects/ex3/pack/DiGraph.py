@@ -53,11 +53,7 @@ class DiGraph:
             self.mc += 1
             self.edgesize += 1
         else:
-            curr_weight = src.ni_out.get(id2)[1]
-            if curr_weight is not weight:
-                self.mc += 1
-            dest.ni_in[id1] = self.get_node(id1)
-            src.ni_out[id2] = [self.get_node(id2), weight]
+            return False
         return True
 
     def get_node(self, id1):
