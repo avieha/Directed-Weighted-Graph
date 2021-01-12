@@ -63,7 +63,7 @@ class TestGraphAlgo(TestCase):
         graph = GraphAlgo(g)
         self.assertTupleEqual(graph.shortest_path(0,6),(17,[0,2,3,4,5,6]))
         graph.g.add_edge(1,6,11.9)
-        self.assertTupleEqual(graph.shortest_path(0, 6), (16.9, [0, 1, 6]))
+        self.assertTupleEqual(graph.shortest_path(0, 6), (17, [0,2,3,4,5,6]))
         self.assertTupleEqual(graph.shortest_path(6, 0), (float('inf'), []))
         self.assertTupleEqual(graph.shortest_path(0, 9), (float('inf'), []))
         self.assertTupleEqual(graph.shortest_path(0, 0), (0 ,[0]))

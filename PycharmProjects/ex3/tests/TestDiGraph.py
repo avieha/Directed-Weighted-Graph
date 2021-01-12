@@ -107,7 +107,7 @@ class TestDiGraph(TestCase):
         g.remove_node(3)
         g.add_edge(6, 1, 3)
         g.remove_edge(6, 1)
-        self.assertEqual(g.get_mc(),17)
+        self.assertEqual(g.get_mc(),16)
 
     def test_add_edge(self):
         g = DiGraph()
@@ -180,7 +180,7 @@ class TestDiGraph(TestCase):
         self.assertIsNone(g.get_edge(4,5 ))
         self.assertIsNone(g.get_edge(3, 9))
         self.assertEqual(g.get_edge(1,2),4)
-        self.assertEqual(g.get_edge(2, 1), 9)
+        self.assertEqual(g.get_edge(2, 1), 7)
 
 
     def test_remove_edge(self):

@@ -219,28 +219,7 @@ class GraphAlgo:
         print (self.g)
         return ""
 
-if __name__ == '__main__':
-    graph = GraphAlgo()
-    for n in range(5):
-        graph.g.add_node(n)
-    graph.get_graph().add_edge(0, 2, 3.5)
-    graph.get_graph().add_edge(1, 2, 3.5)
-    graph.get_graph().add_edge(1, 3, 5)
-    graph.get_graph().add_edge(1, 6, 6)
-    graph.get_graph().add_edge(2, 0, 4)
-    graph.get_graph().add_edge(2, 4, 4)
-    graph.get_graph().add_edge(2, 5, 7)
-    graph.get_graph().add_edge(3, 4, 1)
-    graph.get_graph().add_edge(4, 1, 3)
-    graph.get_graph().add_edge(6, 7, 2.3)
-    graph.get_graph().add_edge(7, 6, 2.3)
-    graph.get_graph().add_edge(6, 2, 2.3)
-    graph.load_from_json('../data/A3')
-    graph.plot_graph()
-    # start = time.time()
-    # #print(graph.connected_components())
-    # end= time.time()
-    # #print("time is ",end-start)
+
 
 
 
