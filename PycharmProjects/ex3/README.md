@@ -36,8 +36,8 @@ We decide to write this project using 2 dictionaries for every node. those dicti
 besides thos dictinaries we have another dictionary wich store all the nodes in the graph.
 the reasons we used dictionaries are because:
 1) in dictionary you dont have doplicates keys, this helps to avoid 2 nodes with same key.
-2)in the dictionary you can reach every node with just O(1) thats allows us to delete nodes and edges or to add nodes and edges fastly and easily.
-   
+
+2)  in the dictionary you can reach every node with just O(1) thats allows us to delete nodes and edges or to add nodes and edges fastly and easily. 
 
 ## Algorithms
 * connected component/s- "naive algorithm"- in the naive algorithm you run a DFS over the graph starting from one node then you traspose
