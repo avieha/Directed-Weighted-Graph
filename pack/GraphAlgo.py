@@ -1,9 +1,11 @@
 import json
 import queue
-import networkx as nx
-from networkx.readwrite import json_graph
-from DiGraph import DiGraph
+import time
+import networkx
+from pack.DiGraph import DiGraph
+import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.patches import ConnectionPatch
 import random
 
 
@@ -22,16 +24,20 @@ class GraphAlgo:
         if self is None:
             return False
         new_graph = DiGraph()
-        with open(file_name, 'r') as fp:
-            jsn = json.load(fp)
-        for item in jsn['Nodes']:
-            new_graph.add_node(item.get('id'))
-        for edge in jsn['Edges']:
-            src = edge['src']
-            dest = edge['dest']
-            w = edge['w']
-            new_graph.add_edge(src, dest, w)
-        self.g = new_graph
+        try:
+            with open(file_name, 'r') as fp:
+                jsn = json.load(fp)
+            for item in jsn['Nodes']:
+                new_graph.add_node(item.get('id'))
+            for edge in jsn['Edges']:
+                src = edge['src']
+                dest = edge['dest']
+                w = edge['w']
+                new_graph.add_edge(src, dest, w)
+            self.g = new_graph
+        except:
+            print('cant open file')
+            return False
         return True
 
     def save_to_json(self, filename):
@@ -39,25 +45,30 @@ class GraphAlgo:
             return False
         x = []
         y = []
-        for key, value in self.g.get_all_v().items():
-            if value.pos is None:
-                x.append({"id": value.id})
-            else:
-                x.append({"id": value.id, "pos": value.pos})
-        for key, value in self.g.get_all_v().items():
-            for sec_key, sec_val in self.g.all_out_edges_of_node(value.id).items():
-                y.append({"src": value.id, "dest": sec_val[0].id, "w": sec_val[1]})
-        w = {}
-        w["Nodes"] = x
-        w["Edges"] = y
-        with open(filename, 'w') as json_file:
-            json.dump(w, json_file)
+        try:
+            for key, value in self.g.get_all_v().items():
+                if value.pos is None:
+                    x.append({"id": value.id})
+                else:
+                    x.append({"id": value.id, "pos": value.pos})
+            for key, value in self.g.get_all_v().items():
+                for sec_key, sec_val in self.g.all_out_edges_of_node(value.id).items():
+                    y.append({"src": value.id, "dest": sec_val[0].id, "w": sec_val[1]})
+            w = {}
+            w["Nodes"] = x
+            w["Edges"] = y
+            with open(filename, 'w') as json_file:
+                json.dump(w, json_file)
+        except:
+            print('Eror saving file')
+            return False
+        return True
 
     def shortest_path(self, id1: int, id2: int) -> (float, list):
         if self is None or self.g is None:
-            return (-1, [])
+            return (float('inf'), [])
         if self.g.get_node(id1) is None or self.g.get_node(id2) is None:
-            return (-1, [])
+            return (float('inf'), [])
         if id1 == id2:
             return (0, [id1])
         for key, node in self.g.get_all_v().items():
@@ -81,7 +92,7 @@ class GraphAlgo:
                         q.put(ni_node[0])
         arr_list = []
         if self.g.get_node(id2).w == -1:
-            return (-1, [])
+            return (float('inf'), [])
         else:
             prev_node = id2
             arr_list.append(prev_node)
@@ -97,17 +108,17 @@ class GraphAlgo:
     def connected_component(self, id1: int):
         if self.g is None or self.g.get_node(id1) is None:
             return []
-        graph = GraphAlgo()
         self.DFS(self.g.get_node(id1))
-        visited = []
-        for node in self.g.get_all_v().values():
-            if node.tag == 1:
-                visited.append(node.id)
+        # visited = []
+        # for node in self.g.get_all_v().values():
+            # if node.tag == 1:
+                # visited.append(node.id)
+        graph = GraphAlgo()
         graph.g = self.reverse_graph(self.g)
-        graph.DFS(self.g.get_node(id1))
+        graph.DFS(graph.g.get_node(id1))
         list = []
         for node in graph.g.get_all_v().values():
-            if node.tag == 1 and node.id in visited:
+            if node.tag == 1 and self.g.get_node(node.id).tag == 1:
                 list.append(node.id)
         return list
 
@@ -120,7 +131,8 @@ class GraphAlgo:
                 graph2.add_edge(edge[0].id, ver.id, 0)
         return graph2
 
-    # The function to do DFS traversal.
+    # The function to do DFS traversal. It uses
+    # recursive DFSUtil()
     def DFS(self, v):
         for node in self.g.get_all_v().values():
             node.tag = 0
@@ -136,9 +148,15 @@ class GraphAlgo:
 
     def connected_components(self):
         list = []
+        for ver in self.g.get_all_v().values():
+            ver.w = -1
         for vertex in self.g.get_all_v().values():
-            if self.connected_component(vertex) not in list:
-                list.append(self.connected_component(vertex))
+            if vertex.w == 1:
+                continue;
+            list2 = self.connected_component(vertex.id)
+            for i in list2:
+                self.g.get_node(i).w = 1
+            list.append(list2)
         return list
 
     def plot_graph(self):
@@ -152,12 +170,12 @@ class GraphAlgo:
             x.append(node.pos[0])
             y.append(node.pos[1])
         fig, ax = plt.subplots()
-        ax.scatter(x, y, 200, 'red')
+        ax.scatter(x, y, 500, 'red')
         for ver in self.g.get_all_v().values():  # type Node
             for neighbour in self.g.all_out_edges_of_node(ver.id).values():
                 from_xy = (ver.pos[0], ver.pos[1])
                 to_xy = (neighbour[0].pos[0], neighbour[0].pos[1])
-                plt.annotate('', to_xy, from_xy, arrowprops=dict(headwidth=7, width=0.5, shrink=0.08), )
+                plt.annotate('', to_xy, from_xy, arrowprops=dict(headwidth=8, width=0.5, shrink=0.07), )
         for i, txt in enumerate(n):
             ax.annotate(txt, (x[i] - 0.5, y[i] - 0.5))
         ax.text(0.5, 0.5, 'created by aviem and amiel', transform=ax.transAxes,
@@ -175,33 +193,24 @@ class GraphAlgo:
 
 if __name__ == '__main__':
     graph = GraphAlgo()
-    for n in range(5):
-        graph.g.add_node(n)
-    graph.get_graph().add_edge(0, 2, 3.5)
-    graph.get_graph().add_edge(1, 2, 3.5)
-    graph.get_graph().add_edge(1, 3, 5)
-    graph.get_graph().add_edge(1, 6, 6)
-    graph.get_graph().add_edge(2, 0, 4)
-    graph.get_graph().add_edge(2, 4, 4)
-    graph.get_graph().add_edge(2, 5, 7)
-    graph.get_graph().add_edge(3, 4, 1)
-    graph.get_graph().add_edge(4, 1, 3)
-    graph.get_graph().add_edge(6, 7, 2.3)
-    graph.get_graph().add_edge(7, 6, 2.3)
-    graph.get_graph().add_edge(6, 2, 2.3)
-    # graph.get_graph().remove_edge(1, 2)
-    # graph.save_to_json("test_json")
-    # x = graph.load_from_json("test_json")
-    # print(graph.get_graph())
-    # print(graph.get_graph().get_node(2).ni_out)
-    # graph.get_graph().remove_edge(1, 3)
-    # print("first graph", graph.get_graph())
-    # print(graph)
-    # y = graph.shortest_path(1, 9)
-    # g1 = nx.DiGraph
-    # graph.read_json_file("../graphs/G_20000_160000_0.json", g1)
-    # graph.load_from_json("../graphs/G_10_80_0.json")
-    print(graph)
-    print(graph.connected_component(0))
+    # for n in range(5):
+    #     graph.g.add_node(n)
+    # graph.get_graph().add_edge(0, 2, 3.5)
+    # graph.get_graph().add_edge(1, 2, 3.5)
+    # graph.get_graph().add_edge(1, 3, 5)
+    # graph.get_graph().add_edge(1, 6, 6)
+    # graph.get_graph().add_edge(2, 0, 4)
+    # graph.get_graph().add_edge(2, 4, 4)
+    # graph.get_graph().add_edge(2, 5, 7)
+    # graph.get_graph().add_edge(3, 4, 1)
+    # graph.get_graph().add_edge(4, 1, 3)
+    # graph.get_graph().add_edge(6, 7, 2.3)
+    # graph.get_graph().add_edge(7, 6, 2.3)
+    # graph.get_graph().add_edge(6, 2, 2.3)
+    graph.load_from_json('../data/Graphs_on_circle/G_30000_240000_1.json')
+    # graph.save_to_json('sixth')
     # graph.plot_graph()
-    # print(y)
+    # start = time.time()
+    print(graph.shortest_path(0, 1))
+    # end = time.time()
+    # print("time passed ", end - start)
