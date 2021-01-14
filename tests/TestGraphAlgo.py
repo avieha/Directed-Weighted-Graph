@@ -22,16 +22,16 @@ class TestGraphAlgo(TestCase):
         g.load_from_json('../data/A0')
         i = 0
         for node in g.get_graph().get_all_v().values():
-            self.assertEqual(i, node.id)
-            i = i + 1
-        list = [1, 10]  # node out from 0 and node in from 0
+            self.assertEqual(i , node.id)
+            i = i+1
+        list = [1,10] #node out from 0 and node in from 0
+        i=0
+        for node in g.get_graph().all_in_edges_of_node(0).keys():
+            self.assertEqual(list[i],node)
+            i = i+1
         i = 0
-        for node in g.get_graph().all_in_edges_of_node(0).values():
-            self.assertEqual(list[i], node.id)
-            i = i + 1
-        i = 0
-        for node in g.get_graph().all_out_edges_of_node(0).values():
-            self.assertEqual(list[i], node[0].id)
+        for node in g.get_graph().all_out_edges_of_node(0).keys():
+            self.assertEqual(list[i], node)
             i = i + 1
 
     def test_save_to_json(self):
@@ -40,6 +40,8 @@ class TestGraphAlgo(TestCase):
         g.save_to_json('save_test')
         graph = GraphAlgo()
         graph.load_from_json('save_test')
+        print(graph)
+        print(g)
         self.assertEqual(g.get_graph(), graph.get_graph())
 
     def test_shortest_path(self):
@@ -56,9 +58,9 @@ class TestGraphAlgo(TestCase):
         g.add_edge(4, 5, 4)
         g.add_edge(5, 6, 7)
         graph = GraphAlgo(g)
-        self.assertTupleEqual(graph.shortest_path(0, 6), (17, [0, 2, 3, 4, 5, 6]))
-        graph.g.add_edge(1, 6, 11.9)
-        self.assertTupleEqual(graph.shortest_path(0, 6), (17, [0, 2, 3, 4, 5, 6]))
+        self.assertTupleEqual(graph.shortest_path(0,6),(17,[0,2,3,4,5,6]))
+        graph.g.add_edge(1,6,11.9)
+        self.assertTupleEqual(graph.shortest_path(0, 6), (17, [0,2,3,4,5,6]))
         self.assertTupleEqual(graph.shortest_path(6, 0), (float('inf'), []))
         self.assertTupleEqual(graph.shortest_path(0, 9), (float('inf'), []))
         self.assertTupleEqual(graph.shortest_path(0, 0), (0, [0]))

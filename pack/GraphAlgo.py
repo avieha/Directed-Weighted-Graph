@@ -6,37 +6,22 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import ConnectionPatch
 import random
 
-from pack.GraphAlgoInterface import GraphAlgoInterface
 
+# this class represent the algorimtmhs which are possible to make over the dwgraph
 
-class GraphAlgo(GraphAlgoInterface):
+class GraphAlgo:
 
-    """
-     * this class implements "GraphAlgoInterface" and lets us take a DiGraph and make over it some
-     manipulations like:
-     * 1. init(graph);
-     * 2. Connected_component(int id); // around specific node
-     * 3. connected_components();
-     * 4. shortestPath(int src, int dest);
-     * 5. Save to JSon(file);
-     * 6. Load from JSon(file);
-     * 7. Plot the graph; """
-
-    """this method init the DWGraph_algo over the received DWGraph so we can run
-         all the function of this class over the graph"""
     def __init__(self, d_graph=None):
         if d_graph is None:
             self.g = DiGraph()
         else:
             self.g = d_graph
 
-    """this method return the graph we init"""
+    # method to return the DiGraph
     def get_graph(self):
         return self.g
 
-    """this method loads a graph from saved JSON file
-    and deserializes it into a DiGraph
-    :param file_name - the file's address"""
+    # method which crate a graph from a json format file and then init the graph in the AlgoGraph
     def load_from_json(self, file_name: str):
         if self is None:
             return False
@@ -64,44 +49,37 @@ class GraphAlgo(GraphAlgoInterface):
             return False
         return True
 
-    """a method to save the graph as a json
-     * we made a json String of the graph and saved it in a file
-     * :param filename - the file name(may include a relative path)"""
+    # method which saves the DiGraph in a json format
     def save_to_json(self, filename):
         if self is None or self.g is None:
             return False
         x = []
         y = []
         try:
-            for key, value in self.g.get_all_v().items():
+            for value in self.g.get_all_v().values():
                 if value.pos is None:
                     x.append({"id": value.id})
                 else:
                     s, t, u = value.pos
                     str_pos = str(s) + ", " + str(t) + ", " + "0.0"
                     x.append({"id": value.id, "pos": str_pos})
-            for key, value in self.g.get_all_v().items():
+            for value in self.g.get_all_v().values():
                 for sec_key, sec_val in self.g.all_out_edges_of_node(value.id).items():
-                    y.append({"src": value.id, "dest": sec_val[0].id, "w": sec_val[1]})
+                    y.append({"src": value.id, "dest": sec_key, "w": sec_val})
             w = {}
             w["Nodes"] = x
             w["Edges"] = y
             with open(filename, 'w') as json_file:
                 json.dump(w, json_file)
         except:
-            print('Error saving file')
+            print('Eror saving file')
             return False
         return True
 
-    """this method return a list of the shortest path between 2 nodes.
-     * for every node we keep the node where we came from and this allows us to return a list 
-     of the shortest path we used a dictionary which keep 
-     for every node the node which was before him in that way we can go to the dest node and check 
-     which node is before him and we can go like this until we get the
-     src node then we just need to reverse the list and we're done
-     * :param src  - start node
-     * :param dest - end (target) node
-     * :return tuple """
+    # method to calculate the shortest path between to nodes using Dijikstra algorithm with a priorityqueue
+    # that use a comparator of the value W of every node
+    # the function retrun a tuple with the lentgh of the path and a list with all the nodes of the shortest path
+    # the method also uses the value Tag of node class to check if a node was visited or not
     def shortest_path(self, id1: int, id2: int) -> (float, list):
         if self is None or self.g is None:
             return (float('inf'), [])
@@ -109,7 +87,8 @@ class GraphAlgo(GraphAlgoInterface):
             return (float('inf'), [])
         if id1 == id2:
             return (0, [id1])
-        for key, node in self.g.get_all_v().items():
+
+        for node in self.g.get_all_v().values():
             node.w = -1
             node.tag = 0
         q = queue.PriorityQueue()
@@ -121,13 +100,13 @@ class GraphAlgo(GraphAlgoInterface):
             node = q.get()
             node.tag = 1
             ni_list = self.g.all_out_edges_of_node(node.id)
-            for key, ni_node in ni_list.items():
-                if self.g.get_node(ni_node[0].id).tag == 0:
-                    sum = node.w + self.g.get_edge(node.id, ni_node[0].id)
-                    if sum < self.g.get_node(ni_node[0].id).w or self.g.get_node(ni_node[0].id).w == -1:
-                        self.g.get_node(ni_node[0].id).w = sum
-                        dict_node[ni_node[0].id] = node.id
-                        q.put(ni_node[0])
+            for ni_node in ni_list.keys():
+                if self.g.get_node(ni_node).tag == 0:
+                    sum = node.w + self.g.get_edge(node.id, ni_node)
+                    if sum < self.g.get_node(ni_node).w or self.g.get_node(ni_node).w == -1:
+                        self.g.get_node(ni_node).w = sum
+                        dict_node[ni_node] = node.id
+                        q.put(self.g.get_node(ni_node))
         arr_list = []
         if self.g.get_node(id2).w == -1:
             return (float('inf'), [])
@@ -143,37 +122,35 @@ class GraphAlgo(GraphAlgoInterface):
         tuple_list = (self.g.get_node(id2).w, arr_list)
         return tuple_list
 
-    """ in this method we uses DFS algorithm twice in order to find strongly connected components
-    around a specific node, the list we return contains the relevant items for the id given
-    :param id1 - the desired node id
-    :return list """
+    # a method that recive a node id and return the biggest strongly component of the node
+    # the method use the "naive algorithm" and run a DFS from the given node after that we call
+    # the method reverse graph wich revers all the edges then we run again the DFS from tha same node
+    # and the nodes which were visited in both of the DFS are the nodes of the scc
+
     def connected_component(self, id1: int):
         if self.g is None or self.g.get_node(id1) is None:
             return []
         graph = GraphAlgo()
-        self.DFS(self.g.get_node(id1))
+        self.DFS(self.g.get_node(id1))  # first DFS
         graph.g = self.reverse_graph(self.g)
-        graph.DFS(graph.g.get_node(id1))
+        graph.DFS(graph.g.get_node(id1))  # second dfs over the reverse graph
         list = []
         for node in graph.g.get_all_v().values():
-            if node.tag == 1 and self.g.get_node(node.id).tag == 1:
+            if node.tag == 1 and self.g.get_node(node.id).tag == 1:  # taking nodes wich were visited in both DFS
                 list.append(node.id)
         return list
 
-    """a method in use from reversing the graph in the CC search
-    :param graph - original graph
-    :return reversed version of the graph"""
+    # simple method that  reverse the graph the method copy the same nodes but copy the opposite edges
     def reverse_graph(self, graph):
         graph2 = DiGraph()
         for node in graph.get_all_v().keys():
             graph2.add_node(node)
         for ver in graph.get_all_v().values():
-            for edge in graph.all_out_edges_of_node(ver.id).values():
-                graph2.add_edge(edge[0].id, ver.id, 0)
+            for edge in graph.all_out_edges_of_node(ver.id).keys():
+                graph2.add_edge(edge, ver.id, 0)
         return graph2
 
-    """ The function to do DFS iterative traversal
-     :param v - starting node to make DFS from"""
+    # The function to do DFS traversal. iterative DFS using a queue
     def DFS(self, v):
         for node in self.g.get_all_v().values():
             node.tag = 0
@@ -182,29 +159,24 @@ class GraphAlgo(GraphAlgoInterface):
         q.put_nowait(v)
         while not q.empty():
             v = q.get()
-            for neighbour in self.g.all_out_edges_of_node(v.id).values():
-                if neighbour[0].tag == 0:
-                    neighbour[0].tag = 1
-                    q.put(neighbour[0])
+            for neighbour in self.g.all_out_edges_of_node(v.id).keys():
+                if self.g.get_node(neighbour).tag == 0:
+                    self.g.get_node(neighbour).tag = 1
+                    q.put(self.g.get_node(neighbour))
 
-    """ this method iterate over the graph and at every unvisited node calls connected_component(this node)
-    and stores all existing strongly connected items in the graph at one list
-    :return list """
     def connected_components(self):
         list = []
         for ver in self.g.get_all_v().values():
             ver.w = -1
         for vertex in self.g.get_all_v().values():
             if vertex.w == 1:
-                continue;
+                continue
             list2 = self.connected_component(vertex.id)
             for i in list2:
                 self.g.get_node(i).w = 1
             list.append(list2)
         return list
 
-    """this method plots the graph using matplotlib and visualizes the graph - if no position stored at
-    a node - randomizes location"""
     def plot_graph(self):
         x = []
         y = []
@@ -213,6 +185,7 @@ class GraphAlgo(GraphAlgoInterface):
         min_x = 1000
         max_y = -1000
         min_y = 1000
+
         for node in self.g.get_all_v().values():
             n.append(node.id)
             if node.pos is None:
@@ -230,28 +203,25 @@ class GraphAlgo(GraphAlgoInterface):
         fig, ax = plt.subplots(facecolor=(0.5, 0.8, 0.8))
         ax.scatter(x, y, 100, 'red')
         for ver in self.g.get_all_v().values():  # type Node
-            for neighbour in self.g.all_out_edges_of_node(ver.id).values():
+            for neighbour in self.g.all_out_edges_of_node(ver.id).keys():
                 from_xy = (ver.pos[0], ver.pos[1])
-                to_xy = (neighbour[0].pos[0], neighbour[0].pos[1])
+                to_xy = (self.g.get_node(neighbour).pos[0], self.g.get_node(neighbour).pos[1])
                 con = ConnectionPatch(from_xy, to_xy, "data", "data",
                                       arrowstyle="-|>", shrinkA=5, shrinkB=5,
                                       mutation_scale=18, fc="orange")
                 ax.add_artist(con)
-                # plt.annotate('', to_xy, from_xy ,arrowprops=dict(headwidth=5, width=0.5, shrink=0.07),)
         for i, txt in enumerate(n):
             ax.annotate(txt, (x[i], y[i] + 0.0002))
         ax.text(0.5, 0.5, 'created by aviem and amiel', transform=ax.transAxes,
                 fontsize=30, color='gray', alpha=0.5,
                 ha='center', va='center', rotation='30')
         plt.axis([min_x - 0.001, max_x + 0.001, min_y - 0.001, max_y + 0.001])
-        # plt.axis([0, 100, 0, 100])
         plt.xlabel('X axis')
         plt.ylabel('Y axis')
         ax.set_facecolor('#eafff5')
         ax.set_title('Directed Weighted Graph')
         plt.show()
 
-    """transforms the GraphAlgo object into something we can read"""
     def __str__(self):
         print(self.g)
         return ""

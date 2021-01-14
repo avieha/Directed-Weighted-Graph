@@ -55,14 +55,12 @@ def check1():
     """
     g_algo = GraphAlgo()  # init an empty graph - for the GraphAlgo
     file = "../data/T0.json"
-    # file = "../data/A0"
-    # file = "test_json"
     g_algo.load_from_json(file)  # init a GraphAlgo from a json file
     print(g_algo)
     print(g_algo.connected_components())
     print(g_algo.shortest_path(0, 3))
     print(g_algo.shortest_path(3, 1))
-    g_algo.save_to_json(file + '_saved')
+    g_algo.save_to_json(file + '_savedagain')
     g_algo.plot_graph()
 
 
