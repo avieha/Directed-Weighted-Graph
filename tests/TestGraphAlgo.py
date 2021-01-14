@@ -1,8 +1,8 @@
 import unittest
 from unittest import TestCase
-from pack.GraphAlgo import GraphAlgo
+
 from pack.DiGraph import DiGraph
-import json
+from pack.GraphAlgo import GraphAlgo
 
 if __name__ == '__main__':
     unittest.main()
@@ -11,7 +11,6 @@ if __name__ == '__main__':
 class TestGraphAlgo(TestCase):
 
     def test_get_graph(self):
-
         graph = DiGraph()
         graph.add_node(1)
         g = GraphAlgo(graph)
@@ -59,7 +58,7 @@ class TestGraphAlgo(TestCase):
         graph = GraphAlgo(g)
         self.assertTupleEqual(graph.shortest_path(0, 6), (17, [0, 2, 3, 4, 5, 6]))
         graph.g.add_edge(1, 6, 11.9)
-        self.assertTupleEqual(graph.shortest_path(0, 6), (16.9, [0, 1, 6]))
+        self.assertTupleEqual(graph.shortest_path(0, 6), (17, [0, 2, 3, 4, 5, 6]))
         self.assertTupleEqual(graph.shortest_path(6, 0), (float('inf'), []))
         self.assertTupleEqual(graph.shortest_path(0, 9), (float('inf'), []))
         self.assertTupleEqual(graph.shortest_path(0, 0), (0, [0]))

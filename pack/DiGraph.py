@@ -1,5 +1,7 @@
+from pack.GraphInterface import GraphInterface
 
-class DiGraph:
+
+class DiGraph(GraphInterface):
 
     def __init__(self):
         self.nodes = {}
@@ -39,10 +41,8 @@ class DiGraph:
     def add_edge(self, id1: int, id2: int, weight: float):
         src = self.get_node(id1)
         dest = self.get_node(id2)
-        if self is None or self.get_node(id1) is None or self.get_node(id2) is None or weight < 0:
+        if self is None or src is None or dest is None or weight < 0:
             return False
-        if dest is None or src is None:
-           return False
         if id1 == id2:
             return False
         if src.ni_out.get(id2) is None:
@@ -51,11 +51,7 @@ class DiGraph:
             self.mc += 1
             self.edgesize += 1
         else:
-            curr_weight = src.ni_out.get(id2)[1]
-            if curr_weight is not weight:
-                self.mc += 1
-            dest.ni_in[id1] = self.get_node(id1)
-            src.ni_out[id2] = [self.get_node(id2), weight]
+            return False
         return True
 
     def get_node(self, id1):
@@ -83,12 +79,10 @@ class DiGraph:
         for edge_in in arr_in.values():
             edge_in.ni_out.pop(node_id)
             self.edgesize -= 1
-            self.mc += 1
         for edge_out in arr_out.values():
             t = edge_out[0]
             t.ni_in.pop(node_id)
             self.edgesize -= 1
-            self.mc += 1
         self.nodes.pop(node_id)
         self.mc += 1
         return True
@@ -122,8 +116,8 @@ class DiGraph:
             length = len(x)
             counter = 0
             for y in x:
-                if counter is length-1:
-                  print(y, end="")
+                if counter is length - 1:
+                    print(y, end="")
                 else:
                     print(y, end=" , ")
                     counter += 1
@@ -132,23 +126,25 @@ class DiGraph:
         return ''
 
     def __eq__(self, other):
-        if(len(self.get_all_v().values())!=len(other.get_all_v().values())):
+        if len(self.get_all_v().values()) != len(other.get_all_v().values()):
             return False
-        for node1 ,node2 in zip(self.get_all_v().values(), other.get_all_v().values()):
-            if node1!=node2:
+        for node1, node2 in zip(self.get_all_v().values(), other.get_all_v().values()):
+            if node1 != node2:
                 return False
-            if (len(self.all_out_edges_of_node(node1.id)) != len(other.all_out_edges_of_node(node2.id))):
+            if len(self.all_out_edges_of_node(node1.id)) != len(other.all_out_edges_of_node(node2.id)):
                 return False
-            for in1, in2 in zip(self.all_out_edges_of_node(node1.id),other.all_out_edges_of_node(node2.id)):
-                if in1!=in2:
+            for in1, in2 in zip(self.all_out_edges_of_node(node1.id), other.all_out_edges_of_node(node2.id)):
+                if in1 != in2:
                     return False
-            if (len(self.all_in_edges_of_node(node1.id)) != len(other.all_in_edges_of_node(node2.id))):
+            if len(self.all_in_edges_of_node(node1.id)) != len(other.all_in_edges_of_node(node2.id)):
                 return False
-            for out1, out2 in zip(self.all_in_edges_of_node(node1.id),other.all_in_edges_of_node(node2.id)):
-                if out1!=out2:
+            for out1, out2 in zip(self.all_in_edges_of_node(node1.id), other.all_in_edges_of_node(node2.id)):
+                if out1 != out2:
                     return False
 
         return True
+
+
 class Node:
     def __init__(self, key, pos):
         self.id = key
