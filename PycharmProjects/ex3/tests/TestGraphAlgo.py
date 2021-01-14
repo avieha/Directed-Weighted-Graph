@@ -30,12 +30,12 @@ class TestGraphAlgo(TestCase):
             i = i+1
         list = [1,10] #node out from 0 and node in from 0
         i=0
-        for node in g.get_graph().all_in_edges_of_node(0).values():
-            self.assertEqual(list[i],node.id)
+        for node in g.get_graph().all_in_edges_of_node(0).keys():
+            self.assertEqual(list[i],node)
             i = i+1
         i = 0
-        for node in g.get_graph().all_out_edges_of_node(0).values():
-            self.assertEqual(list[i], node[0].id)
+        for node in g.get_graph().all_out_edges_of_node(0).keys():
+            self.assertEqual(list[i], node)
             i = i + 1
 
     def test_save_to_json(self):
@@ -44,6 +44,8 @@ class TestGraphAlgo(TestCase):
         g.save_to_json('save_test')
         graph = GraphAlgo()
         graph.load_from_json('save_test')
+        print(graph)
+        print(g)
         self.assertEqual(g.get_graph(), graph.get_graph())
 
 

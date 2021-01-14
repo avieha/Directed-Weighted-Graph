@@ -9,7 +9,7 @@ from matplotlib.patches import ConnectionPatch
 import random
 
 
-
+# this class represent the algorimtmhs which are posiible to make over the dwgraph
 
 class GraphAlgo:
 
@@ -19,9 +19,11 @@ class GraphAlgo:
         else:
             self.g = d_graph
 
+    # method to return the DiGraph
     def get_graph(self):
         return self.g
 
+    # method which crate a graph from a json format file and then init the graph in the AlgoGraph
     def load_from_json(self, file_name: str):
         if self is None:
             return False
@@ -34,10 +36,10 @@ class GraphAlgo:
              if item.get('pos') is not None:
                 pos = item.get('pos')
                 x, y,z = pos.split(',')
-                x=float(x)
+                x = float(x)
                 y = float(y)
-                z= float(z)
-                new_graph.get_node(item.get('id')).pos=(x,y,z)
+                z = float(z)
+                new_graph.get_node(item.get('id')).pos = (x, y, z)
           for edge in jsn['Edges']:
              src = edge['src']
              dest = edge['dest']
@@ -49,22 +51,23 @@ class GraphAlgo:
              return False
         return True
 
+    # method which saves the DiGraph in a json format
     def save_to_json(self, filename):
         if self is None or self.g is None:
             return False
         x = []
         y = []
         try:
-         for key, value in self.g.get_all_v().items():
+         for value in self.g.get_all_v().values():
              if value.pos is None :
                  x.append({"id": value.id})
              else:
-                 s,t,u = value.pos
+                 s, t, u = value.pos
                  str_pos=str(s)+", "+str(t)+", "+"0.0"
                  x.append({"id": value.id, "pos": str_pos})
-         for key, value in self.g.get_all_v().items():
+         for value in self.g.get_all_v().values():
              for sec_key, sec_val in self.g.all_out_edges_of_node(value.id).items():
-                 y.append({"src": value.id, "dest": sec_val[0].id, "w": sec_val[1]})
+                 y.append({"src": value.id, "dest": sec_key, "w": sec_val})
          w = {}
          w["Nodes"] = x
          w["Edges"] = y
@@ -75,14 +78,19 @@ class GraphAlgo:
           return False
         return True
 
+    # method to calculate the shortest path between to nodes using Dijikstra algorithm with a priorityqueue
+    # that use a comparator of the value W of every node
+    # the function retrun a tuple with the lentgh of the path and a list with all the nodes of the shortest path
+    # the method also uses the value Tag of node class to check if a node was visited or not
     def shortest_path(self, id1: int, id2: int) -> (float, list):
-        if self is None or  self.g is None:
+        if self is None or self.g is None:
             return (float('inf'), [])
         if self.g.get_node(id1) is None or self.g.get_node(id2) is None:
             return (float('inf'), [])
         if id1 == id2:
             return (0, [id1])
-        for key, node in self.g.get_all_v().items():
+
+        for node in self.g.get_all_v().values():
             node.w = -1
             node.tag = 0
         q = queue.PriorityQueue()
@@ -94,13 +102,13 @@ class GraphAlgo:
             node = q.get()
             node.tag = 1
             ni_list = self.g.all_out_edges_of_node(node.id)
-            for key, ni_node in ni_list.items():
-                if self.g.get_node(ni_node[0].id).tag == 0:
-                    sum = node.w+self.g.get_edge(node.id, ni_node[0].id)
-                    if sum < self.g.get_node(ni_node[0].id).w or self.g.get_node(ni_node[0].id).w == -1:
-                        self.g.get_node(ni_node[0].id).w=sum
-                        dict_node[ni_node[0].id]=node.id
-                        q.put( ni_node[0])
+            for ni_node in ni_list.keys():
+                if self.g.get_node(ni_node).tag == 0:
+                    sum = node.w+self.g.get_edge(node.id, ni_node)
+                    if sum < self.g.get_node(ni_node).w or self.g.get_node(ni_node).w == -1:
+                        self.g.get_node(ni_node).w = sum
+                        dict_node[ni_node] = node.id
+                        q.put(self.g.get_node(ni_node))
         arr_list = []
         if self.g.get_node(id2).w == -1:
             return (float('inf'), [])
@@ -116,32 +124,34 @@ class GraphAlgo:
         tuple_list = (self.g.get_node(id2).w, arr_list)
         return tuple_list
 
-
+    # a method that recive a node id and return the biggest strongly component of the node
+    #the method use the "naive algorithm" and run a DFS from the given node after that we call
+    # the method reverse graph wich revers all the edges then we run again the DFS from tha same node
+    # and the nodes which were visited in both of the DFS are the nodes of the scc
 
     def connected_component(self, id1: int):
         if self.g is None or self.g.get_node(id1) is None:
             return []
         graph = GraphAlgo()
-        self.DFS(self.g.get_node(id1))
+        self.DFS(self.g.get_node(id1))     # first DFS
         graph.g = self.reverse_graph(self.g)
-        graph.DFS(graph.g.get_node(id1))
+        graph.DFS(graph.g.get_node(id1))    # second dfs over the reverse graph
         list = []
         for node in graph.g.get_all_v().values():
-            if node.tag == 1 and self.g.get_node(node.id).tag == 1:
+            if node.tag == 1 and self.g.get_node(node.id).tag == 1:    # taking nodes wich were visited in both DFS
                 list.append(node.id)
         return list
-
+    # simple method that  reverse the graph the method copy the same nodes but copy the opposite edges
     def reverse_graph(self, graph):
         graph2 = DiGraph()
         for node in graph.get_all_v().keys():
             graph2.add_node(node)
         for ver in graph.get_all_v().values():
-            for edge in graph.all_out_edges_of_node(ver.id).values():
-                graph2.add_edge(edge[0].id, ver.id, 0)
+            for edge in graph.all_out_edges_of_node(ver.id).keys():
+                graph2.add_edge(edge, ver.id, 0)
         return graph2
 
-    # The function to do DFS traversal. It uses
-    # recursive DFSUtil()
+    # The function to do DFS traversal. iterative DFS using a queue
     def DFS(self, v):
         for node in self.g.get_all_v().values():
             node.tag = 0
@@ -150,21 +160,21 @@ class GraphAlgo:
         q.put_nowait(v)
         while not q.empty():
             v = q.get()
-            for neighbour in self.g.all_out_edges_of_node(v.id).values():
-                if neighbour[0].tag == 0:
-                    neighbour[0].tag = 1
-                    q.put(neighbour[0])
+            for neighbour in self.g.all_out_edges_of_node(v.id).keys():
+                if self.g.get_node(neighbour).tag == 0:
+                    self.g.get_node(neighbour).tag = 1
+                    q.put(self.g.get_node(neighbour))
 
     def connected_components(self):
         list = []
         for ver in self.g.get_all_v().values():
-            ver.w=-1
+            ver.w = -1
         for vertex in self.g.get_all_v().values():
-            if vertex.w==1:
-                continue;
+            if vertex.w == 1:
+                continue
             list2 = self.connected_component(vertex.id)
             for i in list2:
-                self.g.get_node(i).w=1
+                self.g.get_node(i).w = 1
             list.append(list2)
         return list
 
@@ -194,9 +204,9 @@ class GraphAlgo:
       fig, ax = plt.subplots(facecolor=(0.5,0.8,0.8))
       ax.scatter(x, y,100,'red')
       for ver in self.g.get_all_v().values():#type Node
-          for neighbour in self.g.all_out_edges_of_node(ver.id).values():
+          for neighbour in self.g.all_out_edges_of_node(ver.id).keys():
                     from_xy=(ver.pos[0],ver.pos[1])
-                    to_xy=(neighbour[0].pos[0],neighbour[0].pos[1])
+                    to_xy=(self.g.get_node(neighbour).pos[0],self.g.get_node(neighbour).pos[1])
                     con = ConnectionPatch(from_xy, to_xy, "data", "data",
                                           arrowstyle="-|>", shrinkA=5, shrinkB=5,
                                           mutation_scale=18, fc="orange")
