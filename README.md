@@ -54,7 +54,7 @@ in the folder "tests" you can find 2 unit test classes that test all the methods
 ## Launch
 To run this project you need at first to Pull the file from the Git repository with the command :
 ```
-$ git clone https://github.com/avieha/ex3.git 
+$ git clone https://github.com/avieha/Directed-Weighted-Graph.git 
 ```
 then you can open the project in your ide, make a main class and start to use it ( maybe you will need to download the metplotlib
 library. you can do it be pressing with the right button of the mouse on the "matplotlib" from the "import matplotlib" in  start of the AlgoGraph class)
